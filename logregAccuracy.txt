@@ -1,0 +1,26 @@
+Accuracy for participant 1-> 0.6852995428663085
+Accuracy for participant 2-> 0.7864988374889762
+Accuracy for participant 3-> 0.7472834771492489
+Accuracy for participant 4-> 0.6715686274509803
+Accuracy for participant 5-> 0.7063939596673994
+Accuracy for participant 6-> 0.7199267782426778
+Accuracy for participant 7-> 0.8377650897226754
+Accuracy for participant 8-> 0.789599275898955
+Accuracy for participant 9-> 0.6692321147454959
+Accuracy for participant 10-> 0.8313695997325979
+Accuracy for participant 11-> 0.7342156284245132
+Accuracy for participant 12-> 0.6645409359467317
+Accuracy for participant 13-> 0.8764044943820225
+Accuracy for participant 14-> 0.5828910120311395
+Accuracy for participant 15-> 0.7048932234740205
+Accuracy for participant 16-> 0.6480519480519481
+Accuracy for participant 17-> 0.7734389058844701
+Accuracy for participant 18-> 0.6900859325270529
+Accuracy for participant 19-> 0.8206446235065296
+Accuracy for participant 20-> 0.6670290839902148
+Accuracy for participant 21-> 0.6284347132603495
+Accuracy for participant 22-> 0.713699607563325
+Accuracy for participant 23-> 0.6909057606007876
+Accuracy for participant 24-> 0.8737264890282131
+Average accuracy for participant -> 0.7297458192348598
+Accuracy for Centralized Training -> 0.5617760139783463
