@@ -317,4 +317,11 @@ participant -> 24 Test accuracy: 0.8921568393707275
 Average Loss ->  0.5418892620752255
 Average Accuracy ->  0.8269977966944376
 Pooled Test accuracy: 0.9489723443984985
+
+
+
+# CL
+# FL 
+# FL + DP 
+# dpsgd ? code from sikha, disparate impact 
 """
