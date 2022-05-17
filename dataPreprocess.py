@@ -78,6 +78,8 @@ def getIndividualDatasets(numbParts):
             partDF = pd.read_csv(pathway)
             partDF = partDF.iloc[:, 1:] #remove index column
 
+            print("I see a pandas data frame it's of shape -> ", partDF.shape)
+
             #preprocess partDF -> normalize (EXPERIMENTAL)
             # scaler = preprocessing.StandardScaler().fit(partDF)
             # partDF = scaler.transform(partDF)
