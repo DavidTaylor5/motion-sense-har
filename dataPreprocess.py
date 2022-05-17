@@ -143,5 +143,6 @@ def getCentralDataset(partDataArray):
 if __name__ == "__main__":
     print("hello")
     partData = getIndividualDatasets(numbParts)
+    print("after")
     #normalizeParticipants(partData) #HAR data needs to be normalized
     #pooledData = getCentralDataset(partData)
