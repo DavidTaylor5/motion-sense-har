@@ -146,7 +146,7 @@ def getCentralDataset(partDataArray):
 if __name__ == "__main__":
     print("hello")
     partData = getIndividualDatasets(numbParts)
-    print(partData[0].shape)
+    print(partData[0][0].shape)
     print("This is the len of partData -> ", len(partData))
     normalizeParticipants(partData) #HAR data needs to be normalized
     print("after")
