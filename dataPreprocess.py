@@ -112,6 +112,9 @@ def getIndividualDatasets(numbParts):
 def normalizeParticipants(partArrays):
     for participant in partArrays:
         allData = pd.concat([participant[0], participant[2]], axis=0)
+
+        print("A participant trying to use standardscaler() ", len(allData))
+
         scaler = preprocessing.StandardScaler().fit(allData)
         allData = scaler.transform(allData)
         #resplit data into training and testing (back to dataframe)
