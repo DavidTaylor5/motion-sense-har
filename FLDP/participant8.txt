@@ -1,0 +1,1 @@
+write something!My cid -> 8 Loss: 0.4240437150001526 Accuracy: 0.0
