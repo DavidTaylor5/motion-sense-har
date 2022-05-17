@@ -8,17 +8,66 @@ from tensorflow.keras.layers import MaxPooling1D
 
 from tensorflow.keras.utils import to_categorical
 
+
 import pandas as pd
 import numpy as np
 import math
 
 from sklearn import preprocessing
+from sklearn.metrics import confusion_matrix
+
 from torch import int64
 
 import dataPreprocess
 
+#write code so that it is reproducible -> set the random seed for tf, numpy, os for python
+
+
+###################################  Sensitive Attributes   #######################################
+#INDEXES OF SENTSITIVE ATTRIBUTES ZERO INDEXED
+#the indexes of males "1"
+male_indexes = [0, 1, 3, 5, 8, 10, 11, 12, 13, 14, 16, 19, 20, 21]
+#the datasets of females "0"
+female_indexes = [2, 4, 6, 7, 9, 15, 17, 18, 22, 23]
+
+
+def pool_by_attribute(attr_indexes, participantData):
+    for p in range(0, len(participantData)):
+
+        attr_test_X = np.array([])
+        attr_test_y = np.array([])
+
+        # this is an index associated with attribute
+        if(p in attr_indexes):
+            attr_test_X = np.concatenate( [attr_test_X, participantData[p][2]] ) if len( attr_test_X ) != 0 else participantData[p][2]
+            attr_test_y = np.concatenate( [attr_test_y, participantData[p][3]] ) if len(attr_test_y) != 0 else participantData[p][3]
+
+    #return training data and labels that have been pooled by an attribute
+    return( [attr_test_X, attr_test_y] ) 
+
+
+def check_fairness(model, PooledTest, prot_test_truth, prot_test_pred, unprot_test_truth, unprot_test_pred):
+    tn, fp, fn, tp = confusion_matrix(y_true=prot_test_truth, y_pred=prot_test_pred, labels=[0, 1, 2, 3, 4, 5]).ravel()
+
+    prot_tpr = tp / (tp + fn)
+    prot_fpr = fp/(fp+tn)
+    prot_dp = (tp+fp)/len(prot_test_truth)
+
+    tn, fp, fn, tp = confusion_matrix(y_true=prot_test_truth, y_pred=prot_test_pred, labels=[0, 1, 2, 3, 4, 5]).ravel()
+    unprot_tpr = tp / (tp + fn)
+    unprot_fpr = fp/(fp+tn)
+    unprot_dp = (tp+fp)/len(unprot_test_truth)
+    print("DI:", max(prot_tpr / unprot_tpr, unprot_tpr / prot_tpr))
+    print("EOP:", abs(prot_tpr-unprot_tpr))
+    print("Avg EP diff:", 0.5 * (abs(prot_tpr-unprot_tpr) + abs(prot_fpr-unprot_fpr)))
+    print("SPD:", abs(prot_dp-unprot_dp))
+
+
 
 ################################### PREPROCESSING FUNCTIONS #######################################
+
+
+
 
 # by calculating window size I won't have to contatenate windows/numpy arrays (slow)
 def calcWindowAmount(participantData, windowSize):
@@ -153,7 +202,7 @@ def sensor_activity( n_timesteps, n_features, n_outputs): #(64, 50, 12) labels s
     model.add(Flatten())
     model.add(Dense(50, activation='relu'))
     model.add(Dense(n_outputs, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    #model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) #I HAVE TAKEN OUT COMPILE LINE FOR FL DP
 
     #print(model.summary())
 
@@ -180,7 +229,7 @@ def individual_cnn(readyData):
         #print("Participant", counter,  "Local Training ->")
         david_cnn = sensor_activity(n_timesteps=50, n_features=12, n_outputs=6)
 
-        david_cnn.fit(participant[0], participant[1], batch_size=64, epochs=20, verbose=0, validation_data=(participant[2], participant[3]))
+        david_cnn.fit(participant[0], participant[1], batch_size=32, epochs=20, verbose=0, validation_data=(participant[2], participant[3]))
         score = david_cnn.evaluate(participant[2], participant[3], verbose=0)
         #print('Test loss:', score[0]) 
         print('participant -> ' + str(counter) +' Test accuracy:', score[1])
@@ -212,6 +261,10 @@ def centralized_cnn(pooledData):
     # counter +=1
     
     #printAverages(avg_accuracy, avg_loss)
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -324,4 +377,18 @@ Pooled Test accuracy: 0.9489723443984985
 # FL 
 # FL + DP 
 # dpsgd ? code from sikha, disparate impact 
+
+
+
+#64 batch
+Average Loss ->  0.568134089310964
+Average Accuracy ->  0.8258574182788531
+
+#32 batch
+Average Loss ->  0.3842432089149952
+Average Accuracy ->  0.8938409214218458
+
+test 2 (32 is better for the fit function)
+Average Loss ->  0.37107059949388105
+Average Accuracy ->  0.8927095904946327
 """
