@@ -21,8 +21,6 @@ from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
-from torch import int64
-
 import dataPreprocess
 
 # I need to make sure that my federated learning settings are reproducible
