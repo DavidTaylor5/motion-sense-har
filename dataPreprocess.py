@@ -153,3 +153,6 @@ if __name__ == "__main__":
     normalizeParticipants(partData) #HAR data needs to be normalized
     print("after")
     #pooledData = getCentralDataset(partData)
+
+#zip files then pull
+#scp myfile.zip david@x.x.x.x:/home/david/Data/

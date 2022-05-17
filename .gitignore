@@ -1,0 +1,2 @@
+# ignore archive -> data folder (different between local and vm)
+archive
