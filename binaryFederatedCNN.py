@@ -106,7 +106,7 @@ def client_fn(cid: str) -> fl.client.Client:
     # Load model
     model = binaryCNN.sensor_activity_binary(n_timesteps=50, n_features=12, n_outputs=2) #as specified by David M
 
-    (x_train, y_train, x_val, y_val) = part_windows[int(cid)]
+    (x_train, y_train, x_val, y_val) = part_windows[int(cid)] #rather than giving workers their data to hold, tell them to reference dataset?
 
     # Create and return client
     return FlwerClient(model, cid, x_train, y_train, x_val, y_val)
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     # f.close()
     # print("done with evaluation!")
 
-
+    
     main()
     
 """

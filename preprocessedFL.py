@@ -31,14 +31,9 @@ np.random.seed(RANDOM_SEED)
 NUM_CLIENTS = 24
 
 class FlwerClient(fl.client.NumPyClient):
-    def __init__(self, model, cid, x_train, y_train, x_val, y_val, train_weights) -> None:
+    def __init__(self, model, cid) -> None:
         super().__init__()
         self.model = model
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_val = x_val
-        self.y_val = y_val
-        self.train_weights = train_weights
         self.cid = cid
         self.acc = []
         self.loss = []
@@ -52,18 +47,22 @@ class FlwerClient(fl.client.NumPyClient):
 
         #my_early_stop = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=5) #added early stopping
 
-        self.model.fit(self.x_train, self.y_train, epochs=35, verbose=0, sample_weight=self.train_weights) #I could potentially attach a callback function here to make early stopping?
+        data_back = read_pre_data_file(self.cid)
+
+        self.model.fit(data_back[0], data_back[1], epochs=35, verbose=0, sample_weight=data_back[4]) #I could potentially attach a callback function here to make early stopping?
         #callbacks=[my_early_stop]
 
-        return self.model.get_weights(), len(self.x_train), {}
+        return self.model.get_weights(), len(data_back[0]), {}
     
     def evaluate(self, parameters, config):
         self.model.set_weights(parameters)
 
-        loss, acc = self.model.evaluate(self.x_val, self.y_val, verbose=2)
+        data_back = read_pre_data_file(self.cid)
+
+        loss, acc = self.model.evaluate(data_back[2], data_back[3], verbose=2)
 
 
-        return loss, len(self.x_val), {"accuracy":acc}
+        return loss, len(data_back[2]), {"accuracy":acc}
 
 
 
@@ -241,23 +240,69 @@ preprocessed_part_data = split_preprocessed_data(combo_men_women_data, part_wind
 
     
 
+def pre_data_to_file(procecssed_data):
 
+    foldername = './preprocessed_folder'
+
+    for i in range (0, len(procecssed_data)):
+
+
+        #I create 4 files for each participant
+        fileName = '/participantTRAINX' + str(i) + '.npy'
+        with open(foldername+fileName, 'wb') as f:
+            np.save(f, procecssed_data[i][0])
+
+        fileName = '/participantTRAINy' + str(i) + '.npy'
+        with open(foldername+fileName, 'wb') as f:
+            np.save(f, procecssed_data[i][1])
+
+        fileName = '/participantTESTX' + str(i) + '.npy'
+        with open(foldername+fileName, 'wb') as f:
+            np.save(f, procecssed_data[i][2])
+
+        fileName = '/participantTESTy' + str(i) + '.npy'
+        with open(foldername+fileName, 'wb') as f:
+            np.save(f, procecssed_data[i][3])
+
+        fileName = '/participantWEIGHTS' + str(i) + '.npy'
+        with open(foldername+fileName, 'wb') as f:
+            np.save(f, procecssed_data[i][4])
+
+
+def read_pre_data_file(participantID): #I STARTED OUT WITH 139 GB of storate -> will this continue to disappear with ray spilled IO objects? After 10 rounds... -> Why is there no change in first 7 rounds?
+    #I open 4 files and grab their numpy contents
+    foldername = './preprocessed_folder'
+
+    with open(foldername + "/participantTRAINX" + str(participantID) + '.npy', 'rb' ) as f:
+        train_X = np.load(f)
+
+    with open(foldername + "/participantTRAINy" + str(participantID) + '.npy', 'rb' ) as f:
+        train_y = np.load(f)
+
+    with open(foldername + "/participantTESTX" + str(participantID) + '.npy', 'rb' ) as f:
+        test_X = np.load(f)
+
+    with open(foldername + "/participantTESTy" + str(participantID) + '.npy', 'rb' ) as f:
+        test_y = np.load(f)
+    
+    with open(foldername + "/participantWEIGHTS" + str(participantID) + '.npy', 'rb' ) as f:
+        weights = np.load(f)
+
+    return [train_X, train_y, test_X, test_y, weights]
 
 
 
 #I don't need pooled data for FL!
 
-
+#I guess that I"m training with preprocessed_part_data!
 
 
 def client_fn(cid: str) -> fl.client.Client:
     # Load model
     model = binaryCNN.sensor_activity_binary(n_timesteps=50, n_features=12, n_outputs=2) #as specified by David M
 
-    (x_train, y_train, x_val, y_val, train_weights) = preprocessed_part_data[int(cid)] #create clients that all have their sample_weight preprocessing values
-
     # Create and return client
-    return FlwerClient(model, cid, x_train, y_train, x_val, y_val, train_weights)
+    return FlwerClient(model, cid)
 
 # experiemental evaluate_config for clients
 def evaluate_config(rnd: int): #EXPERIMENTAL
@@ -275,6 +320,13 @@ def get_eval_fn(model):
 
         binaryCNN.check_fairness(model, pooled_men_data, pooled_women_data)
         score = model.evaluate(pooled_windows[2], pooled_windows[3], verbose=0) #checking score with pooled test set
+
+        # 5, 3, 7, 1, 4, 6, 8, 2, 0, 9
+        #I need to append my server level model's loss in a file then I can disply it as a graph!
+        with open("FederatedLoss/preprocessedFL.txt", "a") as f:
+            f.write(str(score[0]) + "\n")
+
+
         #print('Test loss:', score[0]) 
         print('-> Pooled Test accuracy:', score[1])
 
@@ -314,6 +366,18 @@ def main() -> None:
     )
 
 if __name__ == "__main__":
+
+    # pre_data_to_file([preprocessed_part_data[0]])
+
+    # data_back = read_pre_data_file(0)
+    #make sure this works
+    #refer to the files in my fit and evaluate code
+
+    print("Writing out participant data to files ...")
+    pre_data_to_file(preprocessed_part_data)
+    print("Done writing info to binary files!")
+
+
     main()
     
 """
@@ -459,7 +523,14 @@ Avg EP diff: 0.020846335383477375
 SPD: 0.03617653638426388
 -> Pooled Test accuracy: 0.9537562131881714
 
-
+# recent run ->
+DI: 1.0351085622436633
+EOP: 0.0325761413605139
+Avg EP diff: 0.021155358869262307
+SPD: 0.03659199130740476
+-> Pooled Test accuracy: 0.9539333581924438
+INFO flower 2022-05-17 21:42:37,358 | server.py:209 | evaluate_round: no clients selected, cancel
+INFO flower 2022-05-17 21:42:37,359 | server.py:182 | FL finished in 3670.4992018000003
 
 AZURE NOTES
 1)

@@ -76,3 +76,5 @@ def load_data(idx: int):
     y_test = np.load("/Users/sikha/0FAIRFL/Data/strat/y_test_"+str(idx)+".npy",allow_pickle=True)
     print(X_train.shape, X_test.shape)
     return (X_train, y_train_2), (X_test, y_test)
+
+    
